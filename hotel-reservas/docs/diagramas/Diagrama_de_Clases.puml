@@ -1,0 +1,326 @@
+@startuml Diagrama_de_Clases_Sistema_Hotel
+
+skinparam classAttributeIconSize 0
+skinparam backgroundColor #FEFEFE
+skinparam class {
+    BackgroundColor #E6F3FF
+    BorderColor #0066CC
+    ArrowColor #0066CC
+}
+
+title DIAGRAMA DE CLASES - SISTEMA DE RESERVAS DE HOTEL
+
+' ============ CLASES DEL NÚCLEO (CORE) ============
+
+package "Core" #EFEFEF {
+    
+    abstract class Model {
+        # table : string
+        # fillable : array
+        # timestamps : bool
+        --
+        + find(id : int) : array
+        + all() : array
+        + query(sql : string, params : array) : array
+        + queryOne(sql : string, params : array) : array
+        + create(data : array) : int
+        + update(id : int, data : array) : bool
+        + delete(id : int) : bool
+        + execute(sql : string, params : array) : bool
+        + lastInsertId() : int
+    }
+    
+    abstract class Controller {
+        # view(viewName : string, data : array) : void
+        # redirect(url : string) : void
+        # json(data : array) : void
+        # validateRequest(rules : array) : bool
+    }
+    
+    class Database {
+        - {static} connection : PDO
+        --
+        + {static} getConnection() : PDO
+        + {static} query(sql : string, params : array) : array
+        + {static} queryOne(sql : string, params : array) : array
+        + {static} execute(sql : string, params : array) : bool
+        + {static} lastInsertId() : int
+    }
+    
+    class Router {
+        - routes : array
+        --
+        + get(path : string, handler : string) : void
+        + post(path : string, handler : string) : void
+        + dispatch() : void
+        - parseRoute(uri : string) : array
+        - notFound() : void
+    }
+    
+    class Session {
+        + {static} start() : void
+        + {static} set(key : string, value : mixed) : void
+        + {static} get(key : string) : mixed
+        + {static} has(key : string) : bool
+        + {static} destroy() : void
+        + {static} flash(key : string, value : mixed) : void
+    }
+    
+    class Validator {
+        - data : array
+        - rules : array
+        - errors : array
+        --
+        + validate() : bool
+        + getErrors() : array
+        + required(field : string) : bool
+        + email(field : string) : bool
+        + unique(field : string, table : string) : bool
+        + min(field : string, length : int) : bool
+        + max(field : string, length : int) : bool
+    }
+}
+
+' ============ MODELOS ============
+
+package "Models" #E6FFE6 {
+    
+    class Usuario extends Model {
+        # table = "usuarios"
+        --
+        - id : int
+        - nombre : string
+        - email : string
+        - password : string
+        - rol : string
+        - created_at : datetime
+        --
+        + findByEmail(email : string) : array
+        + verifyPassword(password : string) : bool
+        + hashPassword(password : string) : string
+    }
+    
+    class Cliente extends Model {
+        # table = "clientes"
+        --
+        - id : int
+        - nombre : string
+        - apellido : string
+        - documento : string
+        - tipo_documento : string
+        - email : string
+        - telefono : string
+        - direccion : string
+        - created_at : datetime
+        --
+        + buscar(termino : string) : array
+        + getConReservas(id : int) : array
+        + validarDocumento(documento : string) : bool
+    }
+    
+    class TipoHabitacion extends Model {
+        # table = "tipos_habitacion"
+        --
+        - id : int
+        - nombre : string
+        - descripcion : string
+        - capacidad : int
+        - precio_base : decimal
+        --
+        + getAllActivos() : array
+    }
+    
+    class Habitacion extends Model {
+        # table = "habitaciones"
+        --
+        - id : int
+        - numero : string
+        - tipo_id : int
+        - precio : decimal
+        - estado : string
+        - descripcion : string
+        - imagen : string
+        --
+        + getConTipo(id : int) : array
+        + getAllConTipo() : array
+        + buscarDisponibles(fecha_entrada : date, fecha_salida : date) : array
+        + cambiarEstado(id : int, estado : string) : bool
+        + getDisponibles() : array
+    }
+    
+    class Reserva extends Model {
+        # table = "reservas"
+        --
+        - id : int
+        - codigo : string
+        - cliente_id : int
+        - habitacion_id : int
+        - usuario_id : int
+        - fecha_entrada : date
+        - fecha_salida : date
+        - precio_total : decimal
+        - estado : string
+        - observaciones : text
+        - created_at : datetime
+        --
+        + getConDetalles(id : int) : array
+        + getAllConDetalles(filtros : array) : array
+        + getPorCliente(cliente_id : int) : array
+        + getPorHabitacion(habitacion_id : int) : array
+        + getConSaldoPendiente() : array
+        + generarCodigo() : string
+        + verificarDisponibilidad(habitacion_id : int, fecha_entrada : date, fecha_salida : date) : bool
+        + calcularPrecio(habitacion_id : int, dias : int) : decimal
+        + getEstadisticas(fecha_desde : date, fecha_hasta : date) : array
+    }
+    
+    class Pago extends Model {
+        # table = "pagos"
+        # timestamps = false
+        --
+        - id : int
+        - reserva_id : int
+        - monto : decimal
+        - metodo_pago : string
+        - estado : string
+        - fecha_pago : datetime
+        - referencia : string
+        - observaciones : text
+        --
+        + getConDetalles(id : int) : array
+        + getAllConDetalles(filtros : array) : array
+        + getPorReserva(reserva_id : int) : array
+        + getSaldoPendiente(reserva_id : int) : array
+        + getEstadisticas(fecha_desde : date, fecha_hasta : date) : array
+    }
+}
+
+' ============ CONTROLADORES ============
+
+package "Controllers" #FFE6E6 {
+    
+    class AuthController extends Controller {
+        - usuarioModel : Usuario
+        --
+        + showLogin() : void
+        + login() : void
+        + logout() : void
+        + showRegister() : void
+        + register() : void
+    }
+    
+    class DashboardController extends Controller {
+        - reservaModel : Reserva
+        - pagoModel : Pago
+        --
+        + index() : void
+        - getEstadisticas() : array
+        - getReservasRecientes() : array
+        - getAlertasHoy() : array
+    }
+    
+    class ClienteController extends Controller {
+        - clienteModel : Cliente
+        --
+        + index() : void
+        + create() : void
+        + store() : void
+        + show(id : int) : void
+        + edit(id : int) : void
+        + update(id : int) : void
+        + destroy(id : int) : void
+    }
+    
+    class HabitacionController extends Controller {
+        - habitacionModel : Habitacion
+        - tipoModel : TipoHabitacion
+        --
+        + index() : void
+        + create() : void
+        + store() : void
+        + show(id : int) : void
+        + edit(id : int) : void
+        + update(id : int) : void
+        + destroy(id : int) : void
+    }
+    
+    class ReservaController extends Controller {
+        - reservaModel : Reserva
+        - clienteModel : Cliente
+        - habitacionModel : Habitacion
+        --
+        + index() : void
+        + create() : void
+        + store() : void
+        + show(id : int) : void
+        + edit(id : int) : void
+        + update(id : int) : void
+        + cancelar(id : int) : void
+    }
+    
+    class PagoController extends Controller {
+        - pagoModel : Pago
+        - reservaModel : Reserva
+        --
+        + index() : void
+        + create() : void
+        + store() : void
+        + show(id : int) : void
+        + anular(id : int) : void
+        + recibo(id : int) : void
+    }
+    
+    class BusquedaController extends Controller {
+        - habitacionModel : Habitacion
+        --
+        + index() : void
+        + buscar() : void
+        - aplicarFiltros(filtros : array) : array
+    }
+}
+
+' ============ RELACIONES ============
+
+' Herencia
+Model <|-- Usuario
+Model <|-- Cliente
+Model <|-- TipoHabitacion
+Model <|-- Habitacion
+Model <|-- Reserva
+Model <|-- Pago
+
+Controller <|-- AuthController
+Controller <|-- DashboardController
+Controller <|-- ClienteController
+Controller <|-- HabitacionController
+Controller <|-- ReservaController
+Controller <|-- PagoController
+Controller <|-- BusquedaController
+
+' Composición
+AuthController *-- Usuario
+ClienteController *-- Cliente
+HabitacionController *-- Habitacion
+HabitacionController *-- TipoHabitacion
+ReservaController *-- Reserva
+ReservaController *-- Cliente
+ReservaController *-- Habitacion
+PagoController *-- Pago
+PagoController *-- Reserva
+BusquedaController *-- Habitacion
+DashboardController *-- Reserva
+DashboardController *-- Pago
+
+' Asociaciones entre Modelos
+Habitacion "1" --> "1" TipoHabitacion : tiene
+Reserva "1" --> "1" Cliente : pertenece a
+Reserva "1" --> "1" Habitacion : ocupa
+Reserva "1" --> "1" Usuario : creada por
+Pago "*" --> "1" Reserva : asociado a
+
+' Uso de Database
+Model ..> Database : usa
+Controller ..> Session : usa
+Controller ..> Validator : usa
+
+@enduml

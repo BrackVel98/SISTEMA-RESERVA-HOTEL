@@ -1,0 +1,282 @@
+/**
+ * Estilos para Panel Administrativo
+ */
+
+/* Sidebar */
+.sidebar {
+    z-index: 1000;
+    transition: all 0.3s ease;
+    overflow-y: auto;
+}
+
+.sidebar .nav-link {
+    padding: 0.75rem 1rem;
+    border-radius: 0.375rem;
+    transition: all 0.2s ease;
+}
+
+.sidebar .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar .nav-link.active,
+.sidebar .nav-link.active-route {
+    background-color: rgba(255, 255, 255, 0.2);
+    font-weight: 600;
+}
+
+.sidebar .nav-link i {
+    width: 20px;
+    margin-right: 0.5rem;
+}
+
+/* Main Content */
+.main-content {
+    padding: 2rem;
+    min-height: 100vh;
+    background-color: #f8f9fa;
+}
+
+/* Cards Dashboard */
+.dashboard-stat-card {
+    border-radius: 1rem;
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+}
+
+.dashboard-stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+}
+
+.dashboard-stat-card .card-body {
+    padding: 1.5rem;
+}
+
+.dashboard-stat-card h2 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 0;
+}
+
+.dashboard-stat-card h6 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+    opacity: 0.8;
+}
+
+/* Tablas Administrativas */
+.admin-table {
+    background-color: white;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+}
+
+.admin-table thead {
+    background-color: #f8f9fa;
+}
+
+.admin-table thead th {
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    color: #6c757d;
+    padding: 1rem;
+}
+
+.admin-table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.admin-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.admin-table tbody td {
+    padding: 1rem;
+    vertical-align: middle;
+}
+
+/* Filtros */
+.filter-card {
+    background-color: white;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+}
+
+/* Badges Personalizados */
+.badge-reserva-pendiente {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.badge-reserva-confirmada {
+    background-color: #28a745;
+}
+
+.badge-reserva-cancelada {
+    background-color: #dc3545;
+}
+
+.badge-reserva-completada {
+    background-color: #17a2b8;
+}
+
+.badge-habitacion-disponible {
+    background-color: #28a745;
+}
+
+.badge-habitacion-ocupada {
+    background-color: #dc3545;
+}
+
+.badge-habitacion-mantenimiento {
+    background-color: #6c757d;
+}
+
+/* Botones de Acción */
+.btn-action-group {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.btn-action {
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+}
+
+.btn-action:hover {
+    transform: scale(1.05);
+}
+
+/* Formularios */
+.form-admin {
+    background-color: white;
+    border-radius: 0.5rem;
+    padding: 2rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+}
+
+.form-admin .form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.form-admin .form-control,
+.form-admin .form-select {
+    border-radius: 0.375rem;
+    border: 1px solid #ced4da;
+    padding: 0.625rem 0.75rem;
+}
+
+.form-admin .form-control:focus,
+.form-admin .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* Modales */
+.modal-header {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.modal-footer {
+    background-color: #f8f9fa;
+    border-top: 2px solid #dee2e6;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    background-color: transparent;
+    padding: 0;
+    margin-bottom: 1.5rem;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: "›";
+    font-size: 1.25rem;
+}
+
+/* Alertas */
+.alert-admin {
+    border-radius: 0.5rem;
+    border: none;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Loading Overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.loading-spinner {
+    width: 3rem;
+    height: 3rem;
+    border: 0.25rem solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar {
+        margin-left: -250px;
+    }
+    
+    .sidebar.show {
+        margin-left: 0;
+    }
+    
+    .main-content {
+        margin-left: 0 !important;
+    }
+    
+    .dashboard-stat-card h2 {
+        font-size: 2rem;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .sidebar,
+    .btn,
+    .breadcrumb,
+    .no-print {
+        display: none !important;
+    }
+    
+    .main-content {
+        margin-left: 0 !important;
+        padding: 0 !important;
+    }
+    
+    .admin-table {
+        box-shadow: none !important;
+    }
+}

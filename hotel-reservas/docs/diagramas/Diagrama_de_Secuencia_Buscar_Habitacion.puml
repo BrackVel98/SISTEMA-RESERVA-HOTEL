@@ -1,0 +1,96 @@
+@startuml Secuencia_Buscar_Habitacion
+
+skinparam backgroundColor #FEFEFE
+skinparam participantBackgroundColor #E6FFE6
+skinparam participantBorderColor #00CC66
+skinparam sequenceArrowColor #00CC66
+skinparam sequenceLifeLineBorderColor #00CC66
+
+title DIAGRAMA DE SECUENCIA - BUSCAR HABITACIÓN DISPONIBLE
+
+actor "Cliente/Recepcionista" as user
+participant "BusquedaController" as controller
+participant "HabitacionModel" as habitacionModel
+participant "TipoHabitacionModel" as tipoModel
+database "Database" as db
+
+== Vista de Búsqueda ==
+user -> controller : GET /buscar
+activate controller
+
+controller -> tipoModel : all()
+activate tipoModel
+tipoModel -> db : SELECT * FROM tipos_habitacion
+activate db
+db --> tipoModel : [tipos]
+deactivate db
+tipoModel --> controller : tipos[]
+deactivate tipoModel
+
+controller --> user : Vista formulario búsqueda\n(tipos disponibles)
+deactivate controller
+
+== Ingreso de Criterios ==
+user -> user : Selecciona fecha entrada
+user -> user : Selecciona fecha salida
+user -> user : Selecciona tipo (opcional)
+user -> user : Selecciona capacidad (opcional)
+user -> user : Ingresa precio máximo (opcional)
+
+== Búsqueda ==
+user -> controller : POST /buscar\n(criterios de búsqueda)
+activate controller
+
+controller -> controller : Validar fechas
+note right
+  Validaciones:
+  - Fechas requeridas
+  - Entrada < Salida
+  - Entrada >= hoy
+end note
+
+alt Fechas inválidas
+    controller --> user : Error: Fechas inválidas
+else Fechas válidas
+    
+    controller -> habitacionModel : buscarDisponibles(filtros)
+    activate habitacionModel
+    
+    habitacionModel -> db : SELECT h.*, th.nombre as tipo_nombre\nFROM habitaciones h\nJOIN tipos_habitacion th\nWHERE h.id NOT IN (\n  SELECT habitacion_id FROM reservas\n  WHERE estado NOT IN ('cancelada')\n  AND (fecha_entrada BETWEEN ? AND ?\n       OR fecha_salida BETWEEN ? AND ?)\n)\nAND aplicar_filtros(tipo, capacidad, precio)
+    activate db
+    
+    note right of db
+      La consulta excluye habitaciones
+      que tienen reservas activas
+      en el rango de fechas solicitado
+    end note
+    
+    db --> habitacionModel : [habitaciones disponibles]
+    deactivate db
+    
+    habitacionModel --> controller : resultados[]
+    deactivate habitacionModel
+    
+    alt No hay resultados
+        controller --> user : Vista: No hay habitaciones\ndisponibles con esos criterios
+    else Hay resultados
+        
+        loop Para cada habitación
+            controller -> controller : Calcular precio total\n(precio_noche * días)
+        end
+        
+        controller --> user : Vista: Lista de habitaciones\ndisponibles con precios
+    end
+end
+
+deactivate controller
+
+== Reservar desde Búsqueda ==
+user -> user : Selecciona habitación
+user -> controller : GET /reservas/crear\n?habitacion_id=X&fecha_entrada=Y&fecha_salida=Z
+activate controller
+
+controller --> user : Formulario de reserva\ncon datos pre-cargados
+deactivate controller
+
+@enduml

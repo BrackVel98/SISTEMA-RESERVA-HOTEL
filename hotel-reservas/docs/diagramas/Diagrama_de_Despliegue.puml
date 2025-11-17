@@ -1,0 +1,154 @@
+@startuml Diagrama_de_Despliegue
+
+skinparam backgroundColor #FEFEFE
+skinparam nodeBackgroundColor #E6F3FF
+skinparam nodeBorderColor #0066CC
+skinparam componentBackgroundColor #FFF9E6
+skinparam componentBorderColor #CC9900
+skinparam databaseBackgroundColor #E6FFE6
+skinparam databaseBorderColor #00CC66
+
+title DIAGRAMA DE DESPLIEGUE - SISTEMA DE RESERVAS DE HOTEL
+
+node "Cliente (Navegador Web)" as cliente {
+    component "HTML5" as html
+    component "CSS3 / Bootstrap" as css
+    component "JavaScript" as js
+    
+    html -down-> css
+    html -down-> js
+}
+
+node "Servidor Web Apache" as apache {
+    
+    artifact "Apache HTTP Server 2.4" as httpd {
+        component ".htaccess" as htaccess
+        component "mod_rewrite" as rewrite
+    }
+    
+    node "PHP 8.x Runtime" as php {
+        
+        package "Aplicación Web" as app {
+            
+            folder "public/" as public {
+                component "index.php\n(Router)" as router
+                component "CSS / JS / Images" as assets
+            }
+            
+            folder "controllers/" as controllers {
+                component "AuthController" as auth
+                component "ReservaController" as reserva
+                component "PagoController" as pago
+                component "..." as etc1
+            }
+            
+            folder "models/" as models {
+                component "Cliente" as clienteModel
+                component "Reserva" as reservaModel
+                component "Pago" as pagoModel
+                component "..." as etc2
+            }
+            
+            folder "core/" as core {
+                component "Database" as dbClass
+                component "Router" as routerClass
+                component "Model" as modelClass
+                component "Controller" as controllerClass
+            }
+            
+            folder "views/" as views {
+                component "Templates PHP" as templates
+            }
+            
+            folder "config/" as config {
+                component "database.php" as dbConfig
+                component "app.php" as appConfig
+            }
+        }
+    }
+}
+
+database "MySQL Server 8.x" as mysql {
+    storage "Database: hotel_reservas" as db {
+        frame "Tablas" {
+            component "usuarios"
+            component "clientes"
+            component "habitaciones"
+            component "tipos_habitacion"
+            component "reservas"
+            component "pagos"
+        }
+    }
+}
+
+' Conexiones Cliente - Servidor
+cliente -down-> httpd : HTTP/HTTPS Request\n(Port 80/443)
+httpd -up-> cliente : HTTP Response
+
+' Conexiones Apache - PHP
+httpd -down-> router : Request forwarding
+router -down-> controllers : Route dispatch
+controllers -down-> models : Business Logic
+models -down-> dbClass : Data Access
+
+' Conexiones PHP - MySQL
+dbClass -down-> mysql : MySQL Protocol\n(Port 3306)\nPDO Connection
+
+' Configuración
+config -up-> dbClass : Database credentials
+config -up-> app : App settings
+
+' Vistas
+controllers -right-> views : Render templates
+views -up-> cliente : Generated HTML
+
+' Assets
+assets -up-> cliente : Static files\n(CSS, JS, Images)
+
+' Notas
+note right of cliente
+  **Requisitos del Cliente:**
+  - Navegador moderno
+    (Chrome, Firefox, Edge)
+  - JavaScript habilitado
+  - Resolución mínima:
+    1280x720 px
+end note
+
+note right of apache
+  **Servidor Web:**
+  - OS: Windows/Linux
+  - Apache 2.4.x
+  - PHP 8.0 o superior
+  - Módulos:
+    · mod_rewrite
+    · mod_php
+end note
+
+note left of mysql
+  **Base de Datos:**
+  - MySQL 8.x / MariaDB 10.x
+  - Engine: InnoDB
+  - Charset: utf8mb4
+  - Collation: utf8mb4_unicode_ci
+  
+  **Backups:**
+  - Diarios automáticos
+  - Retención: 30 días
+end note
+
+note bottom of app
+  **Arquitectura:**
+  - Patrón MVC
+  - Router central
+  - ORM simplificado
+  - Separación de capas
+  
+  **Seguridad:**
+  - Passwords hasheados (bcrypt)
+  - Validación de datos
+  - Protección CSRF
+  - SQL Injection prevention (PDO)
+end note
+
+@enduml

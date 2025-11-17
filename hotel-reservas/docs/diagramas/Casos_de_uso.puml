@@ -1,0 +1,158 @@
+<!-- filepath: d:\Software\Apache24\htdocs\hotel-reservas\docs\diagramas\Casos_de_Uso.puml -->
+
+@startuml Casos_de_Uso_Sistema_Hotel
+!define RECTANGLE class
+
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+skinparam backgroundColor #FEFEFE
+skinparam actorBorderColor #333333
+skinparam usecaseBorderColor #0066CC
+skinparam rectangleBorderColor #0066CC
+
+title DIAGRAMA DE CASOS DE USO - SISTEMA DE RESERVAS DE HOTEL
+
+' Actores
+actor "Recepcionista" as recepcionista #lightblue
+actor "Administrador" as admin #lightcoral
+actor "Cliente" as cliente #lightgreen
+
+' Sistema
+rectangle "Sistema de Reservas de Hotel" {
+    
+    ' Módulo de Autenticación
+    package "Autenticación" #EFEFEF {
+        usecase "UC01: Iniciar Sesión" as UC01
+        usecase "UC02: Cerrar Sesión" as UC02
+        usecase "UC03: Recuperar Contraseña" as UC03
+    }
+    
+    ' Módulo de Clientes
+    package "Gestión de Clientes" #E6F3FF {
+        usecase "UC04: Registrar Cliente" as UC04
+        usecase "UC05: Buscar Cliente" as UC05
+        usecase "UC06: Editar Cliente" as UC06
+        usecase "UC07: Eliminar Cliente" as UC07
+        usecase "UC08: Ver Historial Cliente" as UC08
+    }
+    
+    ' Módulo de Habitaciones
+    package "Gestión de Habitaciones" #FFE6E6 {
+        usecase "UC09: Registrar Habitación" as UC09
+        usecase "UC10: Editar Habitación" as UC10
+        usecase "UC11: Eliminar Habitación" as UC11
+        usecase "UC12: Cambiar Estado Habitación" as UC12
+        usecase "UC13: Ver Disponibilidad" as UC13
+    }
+    
+    ' Módulo de Reservas
+    package "Gestión de Reservas" #E6FFE6 {
+        usecase "UC14: Crear Reserva" as UC14
+        usecase "UC15: Buscar Habitación Disponible" as UC15
+        usecase "UC16: Editar Reserva" as UC16
+        usecase "UC17: Cancelar Reserva" as UC17
+        usecase "UC18: Ver Detalle Reserva" as UC18
+        usecase "UC19: Confirmar Check-in" as UC19
+        usecase "UC20: Confirmar Check-out" as UC20
+    }
+    
+    ' Módulo de Pagos
+    package "Gestión de Pagos" #FFF9E6 {
+        usecase "UC21: Registrar Pago" as UC21
+        usecase "UC22: Ver Historial Pagos" as UC22
+        usecase "UC23: Reembolsar Pago" as UC23
+        usecase "UC24: Imprimir Recibo" as UC24
+        usecase "UC25: Ver Saldo Pendiente" as UC25
+    }
+    
+    ' Módulo de Reportes
+    package "Reportes y Estadísticas" #F5E6FF {
+        usecase "UC26: Ver Dashboard" as UC26
+        usecase "UC27: Generar Reporte Ocupación" as UC27
+        usecase "UC28: Generar Reporte Ingresos" as UC28
+        usecase "UC29: Generar Reporte Reservas" as UC29
+        usecase "UC30: Exportar Reportes" as UC30
+    }
+}
+
+' Relaciones Recepcionista
+recepcionista --> UC01
+recepcionista --> UC02
+recepcionista --> UC04
+recepcionista --> UC05
+recepcionista --> UC06
+recepcionista --> UC08
+recepcionista --> UC13
+recepcionista --> UC14
+recepcionista --> UC15
+recepcionista --> UC16
+recepcionista --> UC17
+recepcionista --> UC18
+recepcionista --> UC19
+recepcionista --> UC20
+recepcionista --> UC21
+recepcionista --> UC22
+recepcionista --> UC24
+recepcionista --> UC25
+recepcionista --> UC26
+
+' Relaciones Administrador (Hereda de Recepcionista + Permisos adicionales)
+admin --> UC01
+admin --> UC02
+admin --> UC03
+admin --> UC07
+admin --> UC09
+admin --> UC10
+admin --> UC11
+admin --> UC12
+admin --> UC23
+admin --> UC27
+admin --> UC28
+admin --> UC29
+admin --> UC30
+
+' Relaciones Cliente
+cliente --> UC15
+cliente --> UC18
+
+' Relaciones Include y Extend
+UC14 ..> UC05 : <<include>>
+UC14 ..> UC15 : <<include>>
+UC14 ..> UC21 : <<extend>>
+
+UC16 ..> UC13 : <<include>>
+
+UC21 ..> UC25 : <<include>>
+
+UC06 ..> UC05 : <<include>>
+UC07 ..> UC05 : <<include>>
+UC08 ..> UC05 : <<include>>
+
+UC23 ..> UC22 : <<include>>
+
+UC27 ..> UC30 : <<extend>>
+UC28 ..> UC30 : <<extend>>
+UC29 ..> UC30 : <<extend>>
+
+' Notas
+note right of admin
+  El Administrador tiene
+  todos los permisos del
+  Recepcionista más
+  funciones administrativas
+end note
+
+note right of cliente
+  El Cliente solo puede
+  consultar disponibilidad
+  y ver sus reservas
+end note
+
+note bottom of UC14
+  Crear Reserva incluye:
+  - Buscar cliente
+  - Verificar disponibilidad
+  - Opcionalmente registrar pago inicial
+end note
+
+@enduml

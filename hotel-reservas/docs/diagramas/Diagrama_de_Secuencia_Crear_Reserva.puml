@@ -1,0 +1,120 @@
+@startuml Secuencia_Crear_Reserva
+
+skinparam backgroundColor #FEFEFE
+skinparam participantBackgroundColor #E6F3FF
+skinparam participantBorderColor #0066CC
+skinparam sequenceArrowColor #0066CC
+skinparam sequenceLifeLineBorderColor #0066CC
+
+title DIAGRAMA DE SECUENCIA - CREAR RESERVA
+
+actor "Recepcionista" as recep
+participant "ReservaController" as controller
+participant "ClienteModel" as clienteModel
+participant "HabitacionModel" as habitacionModel
+participant "ReservaModel" as reservaModel
+database "Database" as db
+
+== Inicio del Proceso ==
+recep -> controller : GET /reservas/crear
+activate controller
+
+controller -> clienteModel : all()
+activate clienteModel
+clienteModel -> db : SELECT * FROM clientes
+activate db
+db --> clienteModel : [lista de clientes]
+deactivate db
+clienteModel --> controller : clientes[]
+deactivate clienteModel
+
+controller -> habitacionModel : getDisponibles()
+activate habitacionModel
+habitacionModel -> db : SELECT * FROM habitaciones\nWHERE estado = 'disponible'
+activate db
+db --> habitacionModel : [habitaciones disponibles]
+deactivate db
+habitacionModel --> controller : habitaciones[]
+deactivate habitacionModel
+
+controller --> recep : Vista formulario\n(clientes, habitaciones)
+deactivate controller
+
+== Selección de Datos ==
+recep -> recep : Selecciona cliente
+recep -> recep : Selecciona habitación
+recep -> recep : Ingresa fechas\n(entrada, salida)
+note right
+  JavaScript calcula
+  automáticamente el
+  precio total
+end note
+
+== Envío del Formulario ==
+recep -> controller : POST /reservas/crear\n(datos del formulario)
+activate controller
+
+controller -> controller : Validar datos
+note right
+  Validaciones:
+  - Cliente existe
+  - Habitación existe
+  - Fechas válidas
+  - Fecha entrada < fecha salida
+end note
+
+alt Datos inválidos
+    controller --> recep : Errores de validación
+else Datos válidos
+    
+    controller -> habitacionModel : verificarDisponibilidad(\nhabitacion_id, fecha_entrada, fecha_salida)
+    activate habitacionModel
+    
+    habitacionModel -> db : SELECT COUNT(*) FROM reservas\nWHERE habitacion_id = ?\nAND estado NOT IN ('cancelada')\nAND fechas se solapan
+    activate db
+    db --> habitacionModel : count
+    deactivate db
+    
+    habitacionModel --> controller : disponible (true/false)
+    deactivate habitacionModel
+    
+    alt Habitación no disponible
+        controller --> recep : Error: Habitación no disponible\nen esas fechas
+    else Habitación disponible
+        
+        controller -> reservaModel : generarCodigo()
+        activate reservaModel
+        reservaModel -> db : SELECT MAX(id) FROM reservas
+        activate db
+        db --> reservaModel : ultimo_id
+        deactivate db
+        reservaModel --> controller : codigo (ej: RES019779)
+        deactivate reservaModel
+        
+        controller -> reservaModel : create(datos)
+        activate reservaModel
+        
+        reservaModel -> db : INSERT INTO reservas\n(codigo, cliente_id, habitacion_id,\nfecha_entrada, fecha_salida,\nprecio_total, estado, ...)
+        activate db
+        db --> reservaModel : reserva_id
+        deactivate db
+        
+        reservaModel --> controller : reserva_id
+        deactivate reservaModel
+        
+        controller -> habitacionModel : cambiarEstado(habitacion_id, 'ocupada')
+        activate habitacionModel
+        habitacionModel -> db : UPDATE habitaciones\nSET estado = 'ocupada'\nWHERE id = ?
+        activate db
+        db --> habitacionModel : success
+        deactivate db
+        habitacionModel --> controller : true
+        deactivate habitacionModel
+        
+        controller --> recep : Éxito: Reserva creada\nRedirigir a /reservas/{id}
+    end
+end
+
+deactivate controller
+
+@enduml

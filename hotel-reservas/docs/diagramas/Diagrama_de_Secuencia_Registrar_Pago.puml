@@ -1,0 +1,118 @@
+@startuml Secuencia_Registrar_Pago
+
+skinparam backgroundColor #FEFEFE
+skinparam participantBackgroundColor #FFF9E6
+skinparam participantBorderColor #CC9900
+skinparam sequenceArrowColor #CC9900
+skinparam sequenceLifeLineBorderColor #CC9900
+
+title DIAGRAMA DE SECUENCIA - REGISTRAR PAGO
+
+actor "Recepcionista" as recep
+participant "PagoController" as controller
+participant "ReservaModel" as reservaModel
+participant "PagoModel" as pagoModel
+database "Database" as db
+
+== Inicio del Proceso ==
+recep -> controller : GET /pagos/crear?reserva_id=X
+activate controller
+
+controller -> reservaModel : getConSaldoPendiente()
+activate reservaModel
+
+reservaModel -> db : SELECT r.*, \n(r.precio_total - SUM(p.monto)) as saldo\nFROM reservas r\nLEFT JOIN pagos p ON r.id = p.reserva_id\nWHERE saldo > 0
+activate db
+db --> reservaModel : [reservas con saldo]
+deactivate db
+
+reservaModel --> controller : reservas[]
+deactivate reservaModel
+
+controller --> recep : Vista formulario\n(reservas con saldo pendiente)
+deactivate controller
+
+== Selección y Datos del Pago ==
+recep -> recep : Selecciona reserva
+note right
+  Vista muestra:
+  - Precio total
+  - Total pagado
+  - Saldo pendiente
+end note
+
+recep -> recep : Ingresa monto
+recep -> recep : Selecciona método pago
+recep -> recep : Agrega referencia (opcional)
+
+== Envío del Formulario ==
+recep -> controller : POST /pagos/crear\n(datos del pago)
+activate controller
+
+controller -> controller : Validar datos
+note right
+  Validaciones:
+  - Monto > 0
+  - Monto <= saldo pendiente
+  - Método válido
+  - Fecha válida
+end note
+
+alt Datos inválidos
+    controller --> recep : Errores de validación
+else Datos válidos
+    
+    controller -> pagoModel : getSaldoPendiente(reserva_id)
+    activate pagoModel
+    
+    pagoModel -> db : SELECT \nr.precio_total,\nSUM(p.monto) as pagado,\n(r.precio_total - SUM(p.monto)) as saldo\nFROM reservas r\nLEFT JOIN pagos p\nWHERE r.id = ?
+    activate db
+    db --> pagoModel : saldo_actual
+    deactivate db
+    
+    pagoModel --> controller : saldo_pendiente
+    deactivate pagoModel
+    
+    alt Monto excede saldo
+        controller --> recep : Error: El monto excede\nel saldo pendiente
+    else Monto válido
+        
+        controller -> pagoModel : create(datos_pago)
+        activate pagoModel
+        
+        pagoModel -> db : INSERT INTO pagos\n(reserva_id, monto, metodo_pago,\nestado, fecha_pago, referencia, observaciones)
+        activate db
+        db --> pagoModel : pago_id
+        deactivate db
+        
+        pagoModel --> controller : pago_id
+        deactivate pagoModel
+        
+        ' Verificar si se completó el pago total
+        controller -> pagoModel : getSaldoPendiente(reserva_id)
+        activate pagoModel
+        pagoModel -> db : SELECT saldo...
+        activate db
+        db --> pagoModel : nuevo_saldo
+        deactivate db
+        pagoModel --> controller : nuevo_saldo
+        deactivate pagoModel
+        
+        alt Saldo = 0 (Pago completo)
+            controller -> reservaModel : update(reserva_id,\n{estado: 'confirmada'})
+            activate reservaModel
+            reservaModel -> db : UPDATE reservas\nSET estado = 'confirmada'\nWHERE id = ?
+            activate db
+            db --> reservaModel : success
+            deactivate db
+            reservaModel --> controller : true
+            deactivate reservaModel
+        end
+        
+        controller --> recep : Éxito: Pago registrado\nRedirigir a /pagos/{pago_id}
+    end
+end
+
+deactivate controller
+
+@enduml
