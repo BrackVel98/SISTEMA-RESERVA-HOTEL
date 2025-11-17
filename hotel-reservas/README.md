@@ -267,17 +267,17 @@ Este proyecto está bajo la Licencia MIT. Ver archivo `LICENSE` para más detall
 
 ## 👥 Autores
 
-- **Desarrollador Principal:** [Tu Nombre]
-- **Email:** tu.email@ejemplo.com
-- **GitHub:** [@tu-usuario](https://github.com/tu-usuario)
+- **Desarrollador Principal:** GRUPO 1 FISI UNAP
+- **Email:** brackbaro@gmail.com
+- **GitHub:** BrackVel98(https://github.com/BrackVel98)
 
 ---
 
 ## 📞 Soporte
 
 - 📧 Email: soporte@hotel.com
-- 📱 Teléfono: +51 999 888 777
-- 💬 GitHub Issues: [Reportar problema](https://github.com/tu-usuario/hotel-reservas/issues)
+- 📱 Teléfono: +51 923 342 293
+- 💬 GitHub Issues: [Reportar problema](https://github.com/BrackVel98/SISTEMA-RESERVA-HOTEL/issues)
 
 ---
 
@@ -314,5 +314,6 @@ Dale una estrella ⭐ en GitHub y compártelo con otros desarrolladores.
 ---
 
 **Desarrollado con ❤️ y ☕**
+
 
 ---
